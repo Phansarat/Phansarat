@@ -1,0 +1,23 @@
+import pandas as pd 
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+
+df = pd.read_csv("C:/Users/SMF/Earn/ท่าเรือ/python/cnt_map_13012019.csv", encoding='utf8')
+
+df_trips = df.groupby(['slon', 'slat', 'dlon', 'dlat', 'origin_city', 'Dest_city']).count()[["unit_id"]].rename(columns={"unit_id":"num_of_trips"}).reset_index()
+df_trips.sort_values(by=['num_of_trips'],ascending=False)
+df_trips.to_csv(r'C:/Users/SMF/Earn/ท่าเรือ/python/connecting_map/13012019_OD.csv')
+
+world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres")) 
+world.head()
+
+with plt.style.context(("seaborn","ggplot")):
+    world[world.name == "Thailand"].plot(figsize=(15,15), edgecolor="grey", color="white");
+    
+    ## Loop through each flight plotting line depicting flight between source and destination
+    ## We are also plotting scatter points depicting source and destinations
+    for slat, dlat, slon, dlon, num_trips in zip(df_trips["slat"], df_trips["dlat"], df_trips["slon"], df_trips["dlon"], df_trips["num_of_trips"]):
+        plt.plot([slon , dlon], [slat, dlat], linewidth=num_trips/50, color="lime", alpha=0.5)
+        plt.scatter( [slon, dlon], [slat, dlat], color="orangered", alpha=0.1, s=num_trips)
+
+    plt.title("Connecting Map by truck trips")
